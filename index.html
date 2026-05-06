@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diesel S10 · Expresso Unir</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1a;
+    --surface: #111827;
+    --surface2: #1a2236;
+    --border: rgba(255,255,255,0.07);
+    --accent: #f59e0b;
+    --accent2: #3b82f6;
+    --ok: #10b981;
+    --warn: #ef4444;
+    --critical: #ff3366;
+    --neutral: #6b7280;
+    --text: #f1f5f9;
+    --text2: #94a3b8;
+    --text3: #475569;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG noise texture */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events:none; z-index:0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    padding: 36px 48px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  header::after {
+    content:'';
+    position:absolute; bottom:-1px; left:48px;
+    width:80px; height:2px;
+    background: var(--accent);
+  }
+  .logo-block h1 {
+    font-family:'Syne',sans-serif;
+    font-size: 26px; font-weight:800; letter-spacing:-0.5px;
+    color: var(--text);
+  }
+  .logo-block h1 span { color: var(--accent); }
+  .logo-block p {
+    font-size:12px; color:var(--text3); margin-top:4px;
+    font-family:'DM Mono',monospace; letter-spacing:1px; text-transform:uppercase;
+  }
+  .header-meta {
+    text-align:right;
+    font-family:'DM Mono',monospace; font-size:11px; color:var(--text3);
+    letter-spacing:.5px;
+  }
+  .header-meta strong { color:var(--accent); font-size:13px; display:block; }
+
+  /* ── NAV TABS ── */
+  nav {
+    display:flex; gap:0; padding: 0 48px;
+    border-bottom:1px solid var(--border);
+    overflow-x:auto;
+  }
+  nav button {
+    padding: 16px 24px;
+    background:none; border:none; border-bottom:2px solid transparent;
+    color:var(--text3); cursor:pointer; font:500 13px 'DM Sans',sans-serif;
+    letter-spacing:.3px; transition: all .2s; white-space:nowrap;
+  }
+  nav button:hover { color:var(--text2); }
+  nav button.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+  /* ── MAIN ── */
+  main { padding: 36px 48px; position:relative; z-index:1; }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  /* ── KPI GRID ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 20px 20px;
+    position:relative; overflow:hidden;
+    transition: transform .2s, border-color .2s;
+  }
+  .kpi:hover { transform:translateY(-2px); border-color: rgba(255,255,255,0.14); }
+  .kpi::before {
+    content:'';
+    position:absolute; top:0; left:0; right:0; height:2px;
+    background: var(--kpi-color, var(--accent));
+  }
+  .kpi-label {
+    font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--text3); font-family:'DM Mono',monospace; margin-bottom:12px;
+  }
+  .kpi-value {
+    font-family:'Syne',sans-serif; font-size:30px; font-weight:700;
+    color:var(--text); line-height:1;
+  }
+  .kpi-value .unit { font-size:13px; font-weight:400; color:var(--text3); margin-left:4px; }
+  .kpi-sub { font-size:11px; color:var(--text3); margin-top:8px; }
+  .kpi-icon { position:absolute; top:20px; right:16px; font-size:22px; opacity:.15; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family:'Syne',sans-serif; font-size:16px; font-weight:700;
+    color:var(--text); margin-bottom:20px; display:flex; align-items:center; gap:10px;
+  }
+  .section-title::after {
+    content:''; flex:1; height:1px; background:var(--border);
+  }
+
+  /* ── CATEGORY CARDS ── */
+  .cat-grid {
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+    gap:16px; margin-bottom:36px;
+  }
+  .cat-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:20px; position:relative; overflow:hidden;
+  }
+  .cat-card .cat-name {
+    font-family:'Syne',sans-serif; font-size:12px; font-weight:700;
+    letter-spacing:.5px; color:var(--text2); text-transform:uppercase;
+    margin-bottom:16px;
+  }
+  .cat-meter { margin-bottom:12px; }
+  .cat-meter-label {
+    display:flex; justify-content:space-between; margin-bottom:6px;
+    font-size:11px; color:var(--text3);
+  }
+  .cat-meter-label span:last-child { font-family:'DM Mono',monospace; }
+  .bar-track {
+    height:6px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;
+  }
+  .bar-fill {
+    height:100%; border-radius:4px; transition: width .8s cubic-bezier(.4,0,.2,1);
+  }
+  .cat-stats {
+    display:grid; grid-template-columns:1fr 1fr 1fr;
+    gap:8px; margin-top:14px;
+    padding-top:14px; border-top:1px solid var(--border);
+  }
+  .cat-stat-val {
+    font-family:'DM Mono',monospace; font-size:16px; font-weight:500; color:var(--text);
+  }
+  .cat-stat-lbl { font-size:9px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; }
+  .status-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    padding:3px 10px; border-radius:20px; font-size:10px; font-weight:600;
+    letter-spacing:.5px; text-transform:uppercase;
+  }
+  .badge-ok { background:rgba(16,185,129,.15); color:#10b981; }
+  .badge-warn { background:rgba(239,68,68,.15); color:#ef4444; }
+
+  /* ── VOLUME BAR CHART ── */
+  .vol-chart {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:24px; margin-bottom:36px;
+  }
+  .vol-bars { display:flex; align-items:flex-end; gap:12px; height:160px; margin:20px 0 8px; }
+  .vol-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .vol-bar-outer { width:100%; flex:1; display:flex; align-items:flex-end; }
+  .vol-bar-inner {
+    width:100%; border-radius:4px 4px 0 0; position:relative;
+    background: var(--accent2);
+    transition: height .6s ease;
+    min-height:4px;
+  }
+  .vol-bar-inner:hover::after {
+    content: attr(data-tip);
+    position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%);
+    background:#1e293b; color:var(--text); font-size:10px; padding:4px 8px;
+    border-radius:4px; white-space:nowrap; font-family:'DM Mono',monospace;
+    pointer-events:none; z-index:10;
+  }
+  .vol-bar-label { font-size:9px; color:var(--text3); text-align:center; letter-spacing:.3px; }
+  .vol-bar-val { font-family:'DM Mono',monospace; font-size:9px; color:var(--text2); }
+
+  /* ── FROTAS TABLE ── */
+  .table-controls {
+    display:flex; gap:12px; margin-bottom:16px; align-items:center; flex-wrap:wrap;
+  }
+  .search-box {
+    background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+    padding:10px 14px; color:var(--text); font:400 13px 'DM Sans',sans-serif;
+    outline:none; flex:1; min-width:200px;
+  }
+  .search-box::placeholder { color:var(--text3); }
+  .search-box:focus { border-color:var(--accent2); }
+  .filter-select {
+    background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+    padding:10px 14px; color:var(--text2); font:400 12px 'DM Sans',sans-serif;
+    outline:none; cursor:pointer; appearance:none;
+    padding-right:32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position: right 10px center; background-size:12px;
+  }
+  .filter-select:focus { border-color:var(--accent2); }
+
+  .count-badge {
+    font-family:'DM Mono',monospace; font-size:11px; color:var(--text3);
+    background:var(--surface2); padding:6px 12px; border-radius:6px;
+    border:1px solid var(--border);
+  }
+
+  .frota-table { width:100%; border-collapse:collapse; }
+  .frota-table thead th {
+    padding:10px 12px; text-align:left;
+    font-size:9px; letter-spacing:1.2px; text-transform:uppercase;
+    color:var(--text3); font-family:'DM Mono',monospace;
+    border-bottom:1px solid var(--border);
+    cursor:pointer; user-select:none; white-space:nowrap;
+  }
+  .frota-table thead th:hover { color:var(--text2); }
+  .frota-table thead th .sort-icon { margin-left:4px; opacity:.4; }
+  .frota-table tbody tr {
+    border-bottom:1px solid rgba(255,255,255,0.04);
+    transition: background .15s;
+  }
+  .frota-table tbody tr:hover { background:rgba(255,255,255,0.03); }
+  .frota-table td {
+    padding:11px 12px; font-size:12px; color:var(--text2);
+    font-family:'DM Mono',monospace; white-space:nowrap;
+  }
+  .td-cat {
+    font-family:'DM Sans',sans-serif; font-size:11px;
+    color:var(--text3); letter-spacing:.3px;
+  }
+  .td-frota { color:var(--text); font-weight:500; }
+  .td-placa { color:var(--text3); font-size:11px; }
+  .td-media { font-weight:500; }
+
+  .pill {
+    display:inline-flex; align-items:center; gap:4px;
+    padding:3px 8px; border-radius:20px; font-size:9px; font-weight:600;
+    letter-spacing:.8px; text-transform:uppercase;
+  }
+  .pill-ok   { background:rgba(16,185,129,.12); color:#10b981; }
+  .pill-warn { background:rgba(239,68,68,.12);  color:#ef4444; }
+  .pill-crit { background:rgba(255,51,102,.18); color:#ff3366; animation: pulse-crit 2s infinite; }
+  .pill-gray { background:rgba(107,114,128,.1); color:#6b7280; }
+
+  @keyframes pulse-crit {
+    0%,100% { box-shadow:0 0 0 0 rgba(255,51,102,.3); }
+    50%      { box-shadow:0 0 0 4px rgba(255,51,102,0); }
+  }
+
+  .diff-pos { color:#10b981; }
+  .diff-neg { color:#ef4444; }
+  .diff-crit{ color:#ff3366; font-weight:700; }
+
+  .mini-bar-wrap { width:60px; }
+  .mini-bar-track { height:3px; background:rgba(255,255,255,.06); border-radius:2px; }
+  .mini-bar-fill  { height:100%; border-radius:2px; }
+
+  /* ── RANKING ── */
+  .ranking-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:36px; }
+  @media(max-width:900px){ .ranking-grid { grid-template-columns:1fr; } }
+
+  .rank-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px;
+  }
+  .rank-card h3 { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; margin-bottom:16px; }
+  .rank-item {
+    display:flex; align-items:center; gap:12px;
+    padding:10px 0; border-bottom:1px solid rgba(255,255,255,.04);
+  }
+  .rank-item:last-child { border-bottom:none; }
+  .rank-num {
+    font-family:'Syne',sans-serif; font-size:18px; font-weight:800;
+    color:var(--text3); width:28px; flex-shrink:0;
+  }
+  .rank-info { flex:1; min-width:0; }
+  .rank-frota { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; color:var(--text); }
+  .rank-cat { font-size:10px; color:var(--text3); margin-top:2px; }
+  .rank-val { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; }
+
+  /* ── VOLUME CONTROL ── */
+  .vol-control {
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:28px; margin-bottom:36px;
+  }
+  .vol-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 0; border-bottom:1px solid rgba(255,255,255,.04);
+  }
+  .vol-row:last-child { border-bottom:none; }
+  .vol-row-label { font-size:13px; color:var(--text2); }
+  .vol-row-label small { display:block; font-size:10px; color:var(--text3); margin-top:2px; font-family:'DM Mono',monospace; }
+  .vol-row-val { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; }
+  .vol-section-title {
+    font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--accent); font-family:'DM Mono',monospace;
+    padding:16px 0 8px;
+  }
+  .vol-total { border-top:1px solid var(--border); margin-top:8px; padding-top:8px; }
+  .vol-total .vol-row-label { font-weight:600; color:var(--text); }
+  .vol-total .vol-row-val { font-size:28px; }
+
+  /* ── MODELO TABLE ── */
+  .modelo-table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .modelo-table { width:100%; border-collapse:collapse; }
+  .modelo-table thead th {
+    padding:12px 16px; text-align:left;
+    font-size:9px; letter-spacing:1.2px; text-transform:uppercase;
+    color:var(--text3); font-family:'DM Mono',monospace;
+    background:var(--surface2); border-bottom:1px solid var(--border);
+  }
+  .modelo-table tbody tr { border-bottom:1px solid rgba(255,255,255,.04); transition:background .15s; }
+  .modelo-table tbody tr:hover { background:rgba(255,255,255,.02); }
+  .modelo-table td { padding:13px 16px; font-size:12px; color:var(--text2); font-family:'DM Mono',monospace; }
+  .modelo-table .td-mod { font-family:'DM Sans',sans-serif; color:var(--text); font-size:12px; }
+  .modelo-table .td-cat-lbl { font-size:10px; color:var(--text3); }
+  .gap-indicator {
+    display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align:center; padding:24px 48px;
+    font-size:10px; color:var(--text3); font-family:'DM Mono',monospace;
+    border-top:1px solid var(--border); letter-spacing:.5px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:768px){
+    header, main, nav, footer { padding-left:20px; padding-right:20px; }
+    .kpi-grid { grid-template-columns:1fr 1fr; }
+    .cat-grid { grid-template-columns:1fr; }
+  }
+  @media(max-width:480px){
+    .kpi-grid { grid-template-columns:1fr; }
+  }
+
+  /* Scroll */
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:3px; }
+
+  .table-scroll { overflow-x:auto; }
+
+  /* Animate in */
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .kpi { animation: fadeUp .4s ease both; }
+  .kpi:nth-child(1){animation-delay:.05s}
+  .kpi:nth-child(2){animation-delay:.10s}
+  .kpi:nth-child(3){animation-delay:.15s}
+  .kpi:nth-child(4){animation-delay:.20s}
+  .kpi:nth-child(5){animation-delay:.25s}
+  .kpi:nth-child(6){animation-delay:.30s}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-block">
+    <h1>Expresso <span>Unir</span></h1>
+    <p>Gestão de Combustível · Diesel S10</p>
+  </div>
+  <div class="header-meta">
+    <strong>ABRIL 2025</strong>
+    Atualizado mensalmente
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('dashboard',this)">Dashboard</button>
+  <button onclick="showTab('frotas',this)">Frotas Detalhadas</button>
+  <button onclick="showTab('modelos',this)">Por Modelo</button>
+  <button onclick="showTab('volume',this)">Volume & Compra</button>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- TAB: DASHBOARD                                 -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-dashboard">
+
+  <div class="kpi-grid">
+    <div class="kpi" style="--kpi-color:#f59e0b">
+      <div class="kpi-icon">⛽</div>
+      <div class="kpi-label">Volume Comprado</div>
+      <div class="kpi-value">175.000<span class="unit">L</span></div>
+      <div class="kpi-sub">Abastecimento no mês</div>
+    </div>
+    <div class="kpi" style="--kpi-color:#3b82f6">
+      <div class="kpi-icon">📊</div>
+      <div class="kpi-label">Total no Sistema</div>
+      <div class="kpi-value">187.316<span class="unit">L</span></div>
+      <div class="kpi-sub">Registrado no sistema</div>
+    </div>
+    <div class="kpi" style="--kpi-color:#10b981">
+      <div class="kpi-icon">🚌</div>
+      <div class="kpi-label">Frota Operacional</div>
+      <div class="kpi-value">186.894<span class="unit">L</span></div>
+      <div class="kpi-sub">Ônibus em linha</div>
+    </div>
+    <div class="kpi" style="--kpi-color:#8b5cf6">
+      <div class="kpi-icon">🔧</div>
+      <div class="kpi-label">Apoio + Particular</div>
+      <div class="kpi-value">422<span class="unit">L</span></div>
+      <div class="kpi-sub">Contabilizados no total</div>
+    </div>
+    <div class="kpi" style="--kpi-color:#ef4444">
+      <div class="kpi-icon">⚖️</div>
+      <div class="kpi-label">Diferença</div>
+      <div class="kpi-value" style="color:#ef4444">−12.316<span class="unit">L</span></div>
+      <div class="kpi-sub">Sistema registrou mais que a compra</div>
+    </div>
+    <div class="kpi" style="--kpi-color:#f59e0b">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-label">Frotas Ativas</div>
+      <div class="kpi-value">112<span class="unit" style="font-size:14px"> / 128</span></div>
+      <div class="kpi-sub">Abasteceram no mês</div>
+    </div>
+  </div>
+
+  <!-- VOLUME POR CATEGORIA -->
+  <div class="section-title">Volume por Categoria</div>
+  <div class="vol-chart">
+    <div class="vol-bars" id="vol-bars"></div>
+    <div style="display:flex;gap:12px;" id="vol-labels"></div>
+  </div>
+
+  <!-- CATEGORIAS -->
+  <div class="section-title">Desempenho por Categoria</div>
+  <div class="cat-grid" id="cat-grid"></div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- TAB: FROTAS                                    -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-frotas">
+
+  <!-- RANKING TOPO -->
+  <div class="ranking-grid" id="ranking-grid"></div>
+
+  <div class="section-title">Todas as Frotas</div>
+  <div class="table-controls">
+    <input class="search-box" type="text" placeholder="Buscar frota ou placa..." id="search-input" oninput="filterTable()">
+    <select class="filter-select" id="cat-filter" onchange="filterTable()">
+      <option value="">Todas as categorias</option>
+    </select>
+    <select class="filter-select" id="status-filter" onchange="filterTable()">
+      <option value="">Todos os status</option>
+      <option value="ok">✅ OK</option>
+      <option value="abaixo">🔴 Abaixo</option>
+      <option value="critico">🚨 Crítico</option>
+      <option value="sem_dados">— Sem dados</option>
+    </select>
+    <div class="count-badge" id="count-badge">— frotas</div>
+  </div>
+  <div class="table-scroll">
+    <table class="frota-table">
+      <thead>
+        <tr>
+          <th onclick="sortTable('categoria')">Categoria <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('frota')">Frota <span class="sort-icon">↕</span></th>
+          <th>Placa</th>
+          <th onclick="sortTable('distancia')">Distância (km) <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('volume')">Volume (L) <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('meta')">Meta <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('media')">Média <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('diff_pct')">Diff % <span class="sort-icon">↕</span></th>
+          <th>Barra</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="frota-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- TAB: MODELOS                                   -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-modelos">
+  <div class="section-title">Médias por Modelo de Veículo</div>
+  <div class="modelo-table-wrap">
+    <table class="modelo-table">
+      <thead>
+        <tr>
+          <th>Categoria</th>
+          <th>Modelo</th>
+          <th>Frotas</th>
+          <th>Abast.</th>
+          <th>Volume (L)</th>
+          <th>Meta</th>
+          <th>Média</th>
+          <th>Melhor</th>
+          <th>Pior</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="modelo-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- TAB: VOLUME & COMPRA                           -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-volume">
+  <div class="section-title">Controle de Volume & Compra · Abril 2025</div>
+
+  <div class="vol-control">
+    <div class="vol-section-title">Entradas</div>
+    <div class="vol-row">
+      <div class="vol-row-label">Volume Comprado no Mês<small>Informado pela empresa</small></div>
+      <div class="vol-row-val" style="color:var(--accent)">175.000 L</div>
+    </div>
+
+    <div class="vol-section-title" style="margin-top:8px">Saídas — Sistema</div>
+    <div class="vol-row">
+      <div class="vol-row-label">Frota Operacional<small>128 ônibus em linha</small></div>
+      <div class="vol-row-val">186.894 L</div>
+    </div>
+    <div class="vol-row">
+      <div class="vol-row-label">Apoio<small>Veículos de suporte operacional</small></div>
+      <div class="vol-row-val">254 L</div>
+    </div>
+    <div class="vol-row">
+      <div class="vol-row-label">Particular<small>Veículos de uso pessoal</small></div>
+      <div class="vol-row-val">168 L</div>
+    </div>
+
+    <div class="vol-total">
+      <div class="vol-row">
+        <div class="vol-row-label" style="font-weight:600">Total Registrado no Sistema</div>
+        <div class="vol-row-val">187.316 L</div>
+      </div>
+    </div>
+
+    <div class="vol-section-title" style="margin-top:8px">Resultado</div>
+    <div class="vol-row">
+      <div class="vol-row-label">Diferença (Compra − Sistema)<small>Negativo indica que sistema registrou mais que a compra</small></div>
+      <div class="vol-row-val" style="color:#ef4444">−12.316 L</div>
+    </div>
+    <div class="vol-row">
+      <div class="vol-row-label">Aproveitamento<small>% do comprado registrado no sistema</small></div>
+      <div class="vol-row-val" style="color:#10b981">107,0%</div>
+    </div>
+  </div>
+
+  <div class="section-title">Observações</div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;font-size:13px;color:var(--text2);line-height:1.7;">
+    <p>📌 <strong style="color:var(--text)">Diferença negativa de 12.316 L:</strong> o sistema registrou mais litros do que os 175.000 L comprados. Isso pode indicar:</p>
+    <ul style="margin:10px 0 0 20px;display:flex;flex-direction:column;gap:6px;color:var(--text3)">
+      <li>Abastecimentos realizados com estoque anterior não contabilizados neste mês</li>
+      <li>Divergência entre data de compra e data de abastecimento no sistema</li>
+      <li>Necessidade de cruzamento com nota fiscal da compra</li>
+    </ul>
+    <p style="margin-top:12px;color:var(--text3);font-size:11px;font-family:'DM Mono',monospace;">
+      💡 A partir dos próximos meses, com o histórico mensal, será possível identificar padrões e ajustar o controle.
+    </p>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  EXPRESSO UNIR · DIESEL S10 · ABRIL 2025 · Dados extraídos do sistema de abastecimento
+</footer>
+
+<script>
+// ── DATA ──
+const DATA = {"mes":"Abril 2025","empresa":"Expresso Unir","vol_comprado":175000,"vol_total":187316.39,"vol_op":186894.19,"vol_ap":422.2,"diferenca":-12316.39,"frotas_ativas":112,"total_frotas":128,"categorias":[{"categoria":"ARTICULADO","veiculos":8,"abastecidos":8,"volume":20518.96,"meta":1.45,"media":1.38,"ok":false},{"categoria":"METROPOLITANO PL","veiculos":16,"abastecidos":16,"volume":28043.67,"meta":3.25,"media":3.55,"ok":true},{"categoria":"METROPOLITANO SJL","veiculos":29,"abastecidos":29,"volume":49500.97,"meta":3.25,"media":3.14,"ok":false},{"categoria":"MUNICIPAL PL","veiculos":38,"abastecidos":28,"volume":40371.79,"meta":2.73,"media":2.67,"ok":false},{"categoria":"PADRON","veiculos":2,"abastecidos":2,"volume":5457.29,"meta":2.55,"media":2.52,"ok":false},{"categoria":"ROD. CONVENCIONAL","veiculos":20,"abastecidos":15,"volume":20547.46,"meta":3.16,"media":2.96,"ok":false},{"categoria":"ROD. EXECUTIVO","veiculos":15,"abastecidos":14,"volume":22454.05,"meta":2.9,"media":3.12,"ok":true}],"frotas":[{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14172","placa":"OXD3786","distancia":3665.0,"volume":2791.07,"meta":1.45,"media":1.31,"diff_pct":-9.7,"status":"abaixo"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14173","placa":"OXD3809","distancia":886.0,"volume":694.0,"meta":1.45,"media":1.28,"diff_pct":-11.7,"status":"abaixo"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14174","placa":"OXC9411","distancia":4608.0,"volume":3283.05,"meta":1.45,"media":1.4,"diff_pct":-3.4,"status":"abaixo"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14175","placa":"OXC9430","distancia":728.0,"volume":528.0,"meta":1.45,"media":1.38,"diff_pct":-4.8,"status":"abaixo"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14176","placa":"OXC9437","distancia":5742.0,"volume":4077.18,"meta":1.45,"media":1.41,"diff_pct":-2.8,"status":"abaixo"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14177","placa":"OXC0616","distancia":4199.0,"volume":3046.38,"meta":1.45,"media":1.38,"diff_pct":-4.8,"status":"abaixo"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14178","placa":"OXJ0497","distancia":3835.0,"volume":2577.01,"meta":1.45,"media":1.49,"diff_pct":2.8,"status":"ok"},{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","frota":"14179","placa":"OXJ0501","distancia":4871.0,"volume":3522.27,"meta":1.45,"media":1.38,"diff_pct":-4.8,"status":"abaixo"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1519 METROPOLITANO","frota":"14288","placa":"SHD1G37","distancia":4506.0,"volume":1236.13,"meta":3.25,"media":3.65,"diff_pct":12.3,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1619 METROPOLITANO","frota":"14323","placa":"TDW6G96","distancia":3468.0,"volume":969.12,"meta":3.6,"media":3.58,"diff_pct":-0.6,"status":"abaixo"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1619 METROPOLITANO","frota":"14324","placa":"TED1I00","distancia":6999.0,"volume":1818.51,"meta":3.6,"media":3.85,"diff_pct":6.9,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14325","placa":"TDX1B27","distancia":6935.0,"volume":2036.01,"meta":3.29,"media":3.41,"diff_pct":3.6,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14326","placa":"TDX1B22","distancia":2060.0,"volume":606.13,"meta":3.29,"media":3.4,"diff_pct":3.3,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14327","placa":"TDV7B21","distancia":9326.0,"volume":2698.78,"meta":3.29,"media":3.46,"diff_pct":5.2,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14328","placa":"TDV6C87","distancia":4514.0,"volume":1327.5,"meta":3.29,"media":3.4,"diff_pct":3.3,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14329","placa":"TED1I03","distancia":6482.0,"volume":1838.21,"meta":3.29,"media":3.53,"diff_pct":7.3,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14330","placa":"TED1I05","distancia":8100.0,"volume":2598.0,"meta":3.29,"media":3.12,"diff_pct":-5.2,"status":"abaixo"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14331","placa":"TDZ4F92","distancia":7897.0,"volume":2198.68,"meta":3.29,"media":3.59,"diff_pct":9.1,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14332","placa":"TED1I02","distancia":7175.0,"volume":1935.08,"meta":3.29,"media":3.71,"diff_pct":12.8,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14333","placa":"TED1I06","distancia":3752.0,"volume":1052.06,"meta":3.29,"media":3.57,"diff_pct":8.5,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14334","placa":"TED1H95","distancia":5737.0,"volume":1631.04,"meta":3.29,"media":3.52,"diff_pct":7.0,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14335","placa":"TED1H98","distancia":8480.0,"volume":2233.8,"meta":3.29,"media":3.8,"diff_pct":15.5,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14336","placa":"TDZ4F96","distancia":7449.0,"volume":2046.43,"meta":3.29,"media":3.64,"diff_pct":10.6,"status":"ok"},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","frota":"14337","placa":"TEG2G14","distancia":6502.0,"volume":1818.19,"meta":3.29,"media":3.58,"diff_pct":8.8,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1619 MUNICIPAL","frota":"101","placa":"TDW6G82","distancia":3811.0,"volume":1106.0,"meta":3.45,"media":3.45,"diff_pct":0.0,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1619 MUNICIPAL","frota":"102","placa":"TDZ4F95","distancia":4332.0,"volume":1234.0,"meta":3.45,"media":3.51,"diff_pct":1.7,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","frota":"14281","placa":"SHH0I65","distancia":5795.0,"volume":1860.0,"meta":3.04,"media":3.12,"diff_pct":2.6,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","frota":"14282","placa":"SHH0I79","distancia":6258.0,"volume":1952.0,"meta":3.04,"media":3.21,"diff_pct":5.6,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","frota":"14283","placa":"SHF5I15","distancia":7355.0,"volume":2423.01,"meta":3.04,"media":3.04,"diff_pct":0.0,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","frota":"14284","placa":"SHF4B23","distancia":7445.0,"volume":2376.0,"meta":3.04,"media":3.13,"diff_pct":3.0,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","frota":"14285","placa":"SHE6C29","distancia":5770.0,"volume":1960.0,"meta":3.04,"media":2.94,"diff_pct":-3.3,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","frota":"14286","placa":"SHF8G14","distancia":5170.0,"volume":1572.0,"meta":3.04,"media":3.29,"diff_pct":8.2,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14287","placa":"SHC5G71","distancia":4802.0,"volume":1510.02,"meta":3.25,"media":3.18,"diff_pct":-2.2,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14289","placa":"SHC9J99","distancia":5290.0,"volume":1640.0,"meta":3.25,"media":3.23,"diff_pct":-0.6,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14290","placa":"SHC9J95","distancia":4138.0,"volume":1296.0,"meta":3.25,"media":3.19,"diff_pct":-1.8,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14291","placa":"SHU3I27","distancia":5894.0,"volume":1782.0,"meta":3.25,"media":3.31,"diff_pct":1.8,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14292","placa":"SHO9C20","distancia":4110.0,"volume":1230.0,"meta":3.25,"media":3.34,"diff_pct":2.8,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14293","placa":"SHP7E71","distancia":4443.0,"volume":1404.0,"meta":3.25,"media":3.16,"diff_pct":-2.8,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14294","placa":"SHO6D74","distancia":4612.0,"volume":1420.99,"meta":3.25,"media":3.25,"diff_pct":0.0,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","frota":"14295","placa":"SHU3I25","distancia":6867.0,"volume":1996.0,"meta":3.25,"media":3.44,"diff_pct":5.8,"status":"ok"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14296","placa":"SJG4G47","distancia":5069.0,"volume":1730.0,"meta":3.29,"media":2.93,"diff_pct":-10.9,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14297","placa":"SJG5H91","distancia":6350.0,"volume":2378.0,"meta":3.29,"media":2.67,"diff_pct":-18.8,"status":"critico"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14298","placa":"SYA9B60","distancia":5168.0,"volume":1701.01,"meta":3.29,"media":3.04,"diff_pct":-7.6,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14299","placa":"SYA9B55","distancia":3755.0,"volume":1253.9,"meta":3.29,"media":2.99,"diff_pct":-9.1,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14300","placa":"SJI9G46","distancia":3817.0,"volume":1326.0,"meta":3.29,"media":2.88,"diff_pct":-12.5,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14301","placa":"SYV3A28","distancia":5274.0,"volume":1658.0,"meta":3.29,"media":3.18,"diff_pct":-3.3,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14302","placa":"SYV2J42","distancia":4595.0,"volume":1516.0,"meta":3.29,"media":3.03,"diff_pct":-7.9,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14303","placa":"SYV2J74","distancia":4852.0,"volume":1538.0,"meta":3.29,"media":3.15,"diff_pct":-4.3,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14304","placa":"SYW1J71","distancia":7727.0,"volume":2492.02,"meta":3.29,"media":3.1,"diff_pct":-5.8,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14305","placa":"SYV2J13","distancia":5123.0,"volume":1670.0,"meta":3.29,"media":3.07,"diff_pct":-6.7,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14306","placa":"SYV3A51","distancia":5029.0,"volume":1676.0,"meta":3.29,"media":3.0,"diff_pct":-8.8,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14307","placa":"SYW1J67","distancia":4257.0,"volume":1430.0,"meta":3.29,"media":2.98,"diff_pct":-9.4,"status":"abaixo"},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","frota":"14338","placa":"TED1H97","distancia":7652.0,"volume":2370.02,"meta":3.29,"media":3.23,"diff_pct":-1.8,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"221","placa":"KRR3241","distancia":4152.0,"volume":1570.09,"meta":2.78,"media":2.64,"diff_pct":-5.0,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"231","placa":"LSS2G08","distancia":4508.0,"volume":1661.88,"meta":2.78,"media":2.71,"diff_pct":-2.5,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"241","placa":"KRR3C30","distancia":3438.0,"volume":1249.05,"meta":2.78,"media":2.75,"diff_pct":-1.1,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"251","placa":"LSS2G14","distancia":5137.0,"volume":1891.9,"meta":2.78,"media":2.72,"diff_pct":-2.2,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"261","placa":"LSS2G06","distancia":4608.0,"volume":1733.16,"meta":2.78,"media":2.66,"diff_pct":-4.3,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"271","placa":"LSS2G07","distancia":4927.0,"volume":1747.81,"meta":2.78,"media":2.82,"diff_pct":1.4,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"281","placa":"LSQ6I50","distancia":5517.0,"volume":2211.16,"meta":2.78,"media":2.5,"diff_pct":-10.1,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"291","placa":"KYM6H37","distancia":4300.0,"volume":1659.07,"meta":2.78,"media":2.59,"diff_pct":-6.8,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","frota":"301","placa":"QUA6209","distancia":4852.0,"volume":1693.64,"meta":2.69,"media":2.86,"diff_pct":6.3,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","frota":"311","placa":"QUA6181","distancia":4625.0,"volume":1556.61,"meta":2.69,"media":2.97,"diff_pct":10.4,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","frota":"480","placa":"QQU1229","distancia":3463.0,"volume":1219.05,"meta":2.69,"media":2.84,"diff_pct":5.6,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","frota":"490","placa":"QQU1132","distancia":3545.0,"volume":1378.87,"meta":2.69,"media":2.57,"diff_pct":-4.5,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","frota":"500","placa":"QQU1082","distancia":4109.0,"volume":1489.12,"meta":2.69,"media":2.76,"diff_pct":2.6,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","frota":"510","placa":"QQU1199","distancia":4771.0,"volume":1536.13,"meta":2.69,"media":3.11,"diff_pct":15.6,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"710","placa":"HOE8920","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"720","placa":"HOE8882","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"730","placa":"HOE8885","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"740","placa":"HOE8916","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"771","placa":"HOE8905","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"801","placa":"HOE8893","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"821","placa":"HOE8873","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"831","placa":"HOE8910","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"841","placa":"PJR6597","distancia":0.0,"volume":0.0,"meta":2.78,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"851","placa":"PJR6517","distancia":0.0,"volume":0.0,"meta":2.78,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"861","placa":"PJR2926","distancia":2961.0,"volume":1111.41,"meta":2.78,"media":2.66,"diff_pct":-4.3,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"871","placa":"PJR5052","distancia":2998.0,"volume":1224.02,"meta":2.78,"media":2.45,"diff_pct":-11.9,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"881","placa":"PJR2205","distancia":3221.0,"volume":1235.07,"meta":2.78,"media":2.61,"diff_pct":-6.1,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"891","placa":"KRR3C08","distancia":6090.0,"volume":2231.5,"meta":2.78,"media":2.73,"diff_pct":-1.8,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"901","placa":"KRR3C23","distancia":3798.0,"volume":1485.88,"meta":2.78,"media":2.56,"diff_pct":-7.9,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"911","placa":"PXZ9261","distancia":2336.0,"volume":921.08,"meta":2.78,"media":2.54,"diff_pct":-8.6,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"921","placa":"PXZ9258","distancia":2432.0,"volume":1026.49,"meta":2.78,"media":2.37,"diff_pct":-14.7,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"931","placa":"PYB5923","distancia":3267.0,"volume":1171.71,"meta":2.78,"media":2.79,"diff_pct":0.4,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"941","placa":"PZJ5982","distancia":3887.0,"volume":1566.24,"meta":2.78,"media":2.48,"diff_pct":-10.8,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"951","placa":"LMJ4887","distancia":3647.0,"volume":1304.21,"meta":2.78,"media":2.8,"diff_pct":0.7,"status":"ok"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"961","placa":"KRR3232","distancia":3954.0,"volume":1509.5,"meta":2.78,"media":2.62,"diff_pct":-5.8,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"971","placa":"LSS2624","distancia":3609.0,"volume":1351.05,"meta":2.78,"media":2.67,"diff_pct":-4.0,"status":"abaixo"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"981","placa":"KRR3227","distancia":438.0,"volume":206.0,"meta":2.78,"media":2.13,"diff_pct":-23.4,"status":"critico"},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","frota":"991","placa":"KYR9266","distancia":3946.0,"volume":1430.09,"meta":2.78,"media":2.76,"diff_pct":-0.7,"status":"abaixo"},{"categoria":"PADRON","modelo":"MB OF 1726 PADRON","frota":"14308","placa":"TCI8A52","distancia":7812.0,"volume":3066.17,"meta":2.55,"media":2.55,"diff_pct":0.0,"status":"ok"},{"categoria":"PADRON","modelo":"MB OF 1726 PADRON","frota":"14309","placa":"TCF9H75","distancia":5954.0,"volume":2391.12,"meta":2.55,"media":2.49,"diff_pct":-2.4,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","frota":"2710","placa":"GYS4157","distancia":0.0,"volume":0.0,"meta":3.16,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","frota":"14193","placa":"PWG9280","distancia":2594.0,"volume":762.06,"meta":3.25,"media":3.4,"diff_pct":4.6,"status":"ok"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","frota":"14197","placa":"PWG9274","distancia":686.0,"volume":274.02,"meta":3.25,"media":2.5,"diff_pct":-23.1,"status":"critico"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","frota":"14198","placa":"PWG9282","distancia":1272.0,"volume":399.01,"meta":3.25,"media":3.19,"diff_pct":-1.8,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","frota":"14242","placa":"OQL8394","distancia":191.0,"volume":72.02,"meta":3.25,"media":2.65,"diff_pct":-18.5,"status":"critico"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","frota":"14247","placa":"HAQ0A78","distancia":0.0,"volume":0.0,"meta":3.16,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","frota":"14258","placa":"HAP7829","distancia":525.0,"volume":169.01,"meta":3.16,"media":3.11,"diff_pct":-1.6,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","frota":"14265","placa":"HAP6839","distancia":0.0,"volume":0.0,"meta":3.16,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","frota":"14266","placa":"OQL8388","distancia":205.0,"volume":114.0,"meta":3.25,"media":1.8,"diff_pct":-44.6,"status":"critico"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","frota":"14268","placa":"HAP6597","distancia":0.0,"volume":0.0,"meta":3.16,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","frota":"14269","placa":"HAQ2013","distancia":0.0,"volume":0.0,"meta":3.16,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","frota":"14280","placa":"OQL8399","distancia":681.0,"volume":216.08,"meta":3.25,"media":3.15,"diff_pct":-3.1,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14315","placa":"TDW6G90","distancia":5572.0,"volume":1803.08,"meta":3.16,"media":3.09,"diff_pct":-2.2,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14316","placa":"TDW2H91","distancia":8115.0,"volume":2835.61,"meta":3.16,"media":2.86,"diff_pct":-9.5,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14317","placa":"TDV7B52","distancia":6947.0,"volume":2273.18,"meta":3.16,"media":3.06,"diff_pct":-3.2,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14318","placa":"TDV7B19","distancia":7560.0,"volume":2428.17,"meta":3.16,"media":3.11,"diff_pct":-1.6,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14319","placa":"TDV7B62","distancia":9002.0,"volume":2889.56,"meta":3.16,"media":3.12,"diff_pct":-1.3,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14320","placa":"TDV7A89","distancia":7173.0,"volume":2328.22,"meta":3.16,"media":3.08,"diff_pct":-2.5,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14321","placa":"TDV7B66","distancia":5945.0,"volume":1907.2,"meta":3.16,"media":3.12,"diff_pct":-1.3,"status":"abaixo"},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","frota":"14322","placa":"TDV7B54","distancia":6512.0,"volume":2076.24,"meta":3.16,"media":3.14,"diff_pct":-0.6,"status":"abaixo"},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1722 EURO III MUNICIPAL","frota":"811","placa":"HGJ6399","distancia":0.0,"volume":0.0,"meta":2.73,"media":0.0,"diff_pct":null,"status":"sem_dados"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500 R EURO III","frota":"14188","placa":"HGJ6484","distancia":307.0,"volume":100.0,"meta":2.9,"media":3.07,"diff_pct":5.9,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14194","placa":"PWK8114","distancia":5788.0,"volume":1865.96,"meta":3.0,"media":3.1,"diff_pct":3.3,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14195","placa":"PWK8117","distancia":5361.0,"volume":1808.68,"meta":3.0,"media":2.96,"diff_pct":-1.3,"status":"abaixo"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500 R EURO III","frota":"14201","placa":"GSR6526","distancia":285.0,"volume":163.05,"meta":2.9,"media":1.75,"diff_pct":-39.7,"status":"critico"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14204","placa":"OQL8358","distancia":4723.0,"volume":1549.24,"meta":3.0,"media":3.05,"diff_pct":1.7,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14205","placa":"OQL8379","distancia":7845.0,"volume":2577.22,"meta":3.0,"media":3.04,"diff_pct":1.3,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14207","placa":"OQL8374","distancia":5069.0,"volume":1649.21,"meta":3.0,"media":3.07,"diff_pct":2.3,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14216","placa":"PYU4952","distancia":3944.0,"volume":1399.12,"meta":3.0,"media":2.82,"diff_pct":-6.0,"status":"abaixo"},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","frota":"14217","placa":"PYU4945","distancia":4500.0,"volume":1545.18,"meta":3.0,"media":2.91,"diff_pct":-3.0,"status":"abaixo"},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1726 EXECUTIVO","frota":"14310","placa":"TDV7B27","distancia":7359.0,"volume":2028.2,"meta":3.58,"media":3.63,"diff_pct":1.4,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1726 EXECUTIVO","frota":"14311","placa":"TDV7B57","distancia":5957.0,"volume":1733.94,"meta":3.58,"media":3.44,"diff_pct":-3.9,"status":"abaixo"},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1726 EXECUTIVO","frota":"14312","placa":"TDW2H90","distancia":7801.0,"volume":2128.22,"meta":3.58,"media":3.67,"diff_pct":2.5,"status":"ok"},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1726 EXECUTIVO","frota":"14313","placa":"TDY2I30","distancia":7114.0,"volume":1995.86,"meta":3.58,"media":3.56,"diff_pct":-0.6,"status":"abaixo"},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1726 EXECUTIVO","frota":"14314","placa":"TDY2I43","distancia":6904.0,"volume":1910.17,"meta":3.58,"media":3.61,"diff_pct":0.8,"status":"ok"}],"modelos":[{"categoria":"ARTICULADO","modelo":"MB O500 MA EURO V","qtd":8,"abastecidos":8,"volume":20518.96,"meta":1.45,"media":1.38,"melhor":1.49,"pior":1.28},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1519 METROPOLITANO","qtd":1,"abastecidos":1,"volume":1236.13,"meta":3.25,"media":3.65,"melhor":3.65,"pior":3.65},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1619 METROPOLITANO","qtd":2,"abastecidos":2,"volume":2787.63,"meta":3.6,"media":3.71,"melhor":3.85,"pior":3.58},{"categoria":"METROPOLITANO PL","modelo":"MB OF 1721 EURO VI","qtd":13,"abastecidos":13,"volume":24019.91,"meta":3.29,"media":3.52,"melhor":3.8,"pior":3.12},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1519 METROPOLITANO","qtd":8,"abastecidos":8,"volume":12279.01,"meta":3.25,"media":3.26,"melhor":3.44,"pior":3.16},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1619 MUNICIPAL","qtd":2,"abastecidos":2,"volume":2340.0,"meta":3.45,"media":3.48,"melhor":3.51,"pior":3.45},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO V METROPOLITAN","qtd":6,"abastecidos":6,"volume":12143.01,"meta":3.04,"media":3.12,"melhor":3.29,"pior":2.94},{"categoria":"METROPOLITANO SJL","modelo":"MB OF 1721 EURO VI","qtd":13,"abastecidos":13,"volume":22738.95,"meta":3.29,"media":3.02,"melhor":3.23,"pior":2.67},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1519 MUNICIPAL","qtd":6,"abastecidos":6,"volume":8873.42,"meta":2.69,"media":2.85,"melhor":3.11,"pior":2.57},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1721 EURO V MUNICIPAL","qtd":24,"abastecidos":22,"volume":31498.37,"meta":2.78,"media":2.62,"melhor":2.82,"pior":2.13},{"categoria":"MUNICIPAL PL","modelo":"MB OF 1722 EURO III MUNICIPAL","qtd":8,"abastecidos":0,"volume":0.0,"meta":2.73,"media":0,"melhor":0,"pior":0},{"categoria":"PADRON","modelo":"MB OF 1726 PADRON","qtd":2,"abastecidos":2,"volume":5457.29,"meta":2.55,"media":2.52,"melhor":2.55,"pior":2.49},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1721 EURO V CONVENCIONAL","qtd":6,"abastecidos":6,"volume":1837.19,"meta":3.25,"media":2.78,"melhor":3.4,"pior":1.8},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1722 EURO III CONVENCION","qtd":6,"abastecidos":1,"volume":169.01,"meta":3.16,"media":3.11,"melhor":3.11,"pior":3.11},{"categoria":"ROD. CONVENCIONAL","modelo":"MB OF 1726 CONVENCIONAL","qtd":8,"abastecidos":8,"volume":18541.26,"meta":3.16,"media":3.07,"melhor":3.14,"pior":2.86},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500 R EURO III","qtd":2,"abastecidos":2,"volume":263.05,"meta":2.9,"media":2.41,"melhor":3.07,"pior":1.75},{"categoria":"ROD. EXECUTIVO","modelo":"MB O500R EURO V","qtd":7,"abastecidos":7,"volume":12394.61,"meta":3.0,"media":2.99,"melhor":3.1,"pior":2.82},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1722 EURO III MUNICIPAL","qtd":1,"abastecidos":0,"volume":0.0,"meta":2.73,"media":0,"melhor":0,"pior":0},{"categoria":"ROD. EXECUTIVO","modelo":"MB OF 1726 EXECUTIVO","qtd":5,"abastecidos":5,"volume":9796.39,"meta":3.58,"media":3.58,"melhor":3.67,"pior":3.44}]};
+
+// ── TABS ──
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── VOLUME BARS ──
+function buildVolBars() {
+  const cats = DATA.categorias;
+  const maxVol = Math.max(...cats.map(c=>c.volume));
+  const barsEl = document.getElementById('vol-bars');
+  const labelsEl = document.getElementById('vol-labels');
+  const colors = ['#3b82f6','#8b5cf6','#06b6d4','#10b981','#f59e0b','#ef4444','#ec4899'];
+
+  cats.forEach((c,i) => {
+    const pct = (c.volume/maxVol*100).toFixed(1);
+    const vol = Math.round(c.volume).toLocaleString('pt-BR');
+    const wrap = document.createElement('div');
+    wrap.className = 'vol-bar-wrap';
+    wrap.innerHTML = `
+      <div class="vol-bar-val">${vol}</div>
+      <div class="vol-bar-outer">
+        <div class="vol-bar-inner" style="height:${pct}%;background:${colors[i]}" data-tip="${c.categoria}: ${vol} L"></div>
+      </div>`;
+    barsEl.appendChild(wrap);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'vol-bar-label';
+    lbl.style.flex='1';
+    lbl.style.textAlign='center';
+    lbl.style.fontSize='9px';
+    lbl.style.color='var(--text3)';
+    lbl.textContent = c.categoria.replace('METROPOLITANO','METRO').replace('CONVENCIONAL','CONV.').replace('EXECUTIVO','EXEC.');
+    labelsEl.appendChild(lbl);
+  });
+}
+
+// ── CATEGORY CARDS ──
+function buildCatCards() {
+  const grid = document.getElementById('cat-grid');
+  DATA.categorias.forEach(c => {
+    const pct = c.media > 0 ? Math.min((c.media/c.meta)*100,120) : 0;
+    const isOk = c.ok;
+    const color = isOk ? '#10b981' : '#ef4444';
+    const badge = isOk
+      ? '<span class="status-badge badge-ok">✓ OK</span>'
+      : '<span class="status-badge badge-warn">✗ Abaixo</span>';
+    const card = document.createElement('div');
+    card.className='cat-card';
+    card.innerHTML = `
+      <div class="cat-name">${c.categoria} ${badge}</div>
+      <div class="cat-meter">
+        <div class="cat-meter-label"><span>Média vs Meta</span><span>${c.media.toFixed(2)} / ${c.meta.toFixed(2)} km/l</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      </div>
+      <div class="cat-stats">
+        <div><div class="cat-stat-val">${c.veiculos}</div><div class="cat-stat-lbl">Frotas</div></div>
+        <div><div class="cat-stat-val">${c.abastecidos}</div><div class="cat-stat-lbl">Abast.</div></div>
+        <div><div class="cat-stat-val">${Math.round(c.volume).toLocaleString('pt-BR')}</div><div class="cat-stat-lbl">Litros</div></div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ── RANKING ──
+function buildRanking() {
+  const grid = document.getElementById('ranking-grid');
+  const com = DATA.frotas.filter(f=>f.media>0&&f.meta>0);
+  const piores = [...com].sort((a,b)=>(a.diff_pct||0)-(b.diff_pct||0)).slice(0,8);
+  const melhores = [...com].sort((a,b)=>(b.diff_pct||0)-(a.diff_pct||0)).slice(0,8);
+
+  function rankCard(title, items, isWorst) {
+    const card = document.createElement('div');
+    card.className='rank-card';
+    card.innerHTML = `<h3 style="color:${isWorst?'#ef4444':'#10b981'}">${title}</h3>`;
+    items.forEach((f,i) => {
+      const color = isWorst ? '#ef4444' : '#10b981';
+      const item = document.createElement('div');
+      item.className='rank-item';
+      item.innerHTML = `
+        <div class="rank-num">${i+1}</div>
+        <div class="rank-info">
+          <div class="rank-frota">Frota ${f.frota}</div>
+          <div class="rank-cat">${f.categoria} · ${f.placa}</div>
+        </div>
+        <div class="rank-val" style="color:${color}">${f.media.toFixed(2)}<span style="font-size:11px;color:var(--text3)"> km/l</span></div>`;
+      card.appendChild(item);
+    });
+    return card;
+  }
+
+  grid.appendChild(rankCard('🚨 Piores Médias do Mês', piores, true));
+  grid.appendChild(rankCard('🏆 Melhores Médias do Mês', melhores, false));
+}
+
+// ── FROTA TABLE ──
+let frotas = [...DATA.frotas];
+let sortKey = 'diff_pct';
+let sortDir = 1;
+
+function buildCatFilter() {
+  const sel = document.getElementById('cat-filter');
+  const cats = [...new Set(DATA.frotas.map(f=>f.categoria))].sort();
+  cats.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    sel.appendChild(o);
+  });
+}
+
+function filterTable() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const cat = document.getElementById('cat-filter').value;
+  const st = document.getElementById('status-filter').value;
+  frotas = DATA.frotas.filter(f => {
+    const matchQ = !q || f.frota.includes(q) || f.placa.toLowerCase().includes(q) || f.categoria.toLowerCase().includes(q);
+    const matchC = !cat || f.categoria === cat;
+    const matchS = !st || f.status === st;
+    return matchQ && matchC && matchS;
+  });
+  renderTable();
+}
+
+function sortTable(key) {
+  if(sortKey===key) sortDir*=-1; else { sortKey=key; sortDir=1; }
+  frotas.sort((a,b) => {
+    const av = a[key]??-9999, bv = b[key]??-9999;
+    return typeof av==='string' ? av.localeCompare(bv)*sortDir : (av-bv)*sortDir;
+  });
+  renderTable();
+}
+
+function pillHtml(st) {
+  if(st==='ok')       return '<span class="pill pill-ok">✓ OK</span>';
+  if(st==='abaixo')   return '<span class="pill pill-warn">✗ Abaixo</span>';
+  if(st==='critico')  return '<span class="pill pill-crit">⚠ Crítico</span>';
+  return '<span class="pill pill-gray">— Sem dados</span>';
+}
+
+function renderTable() {
+  const tbody = document.getElementById('frota-tbody');
+  document.getElementById('count-badge').textContent = `${frotas.length} frotas`;
+  tbody.innerHTML = '';
+  frotas.forEach(f => {
+    const diff = f.diff_pct;
+    let diffHtml = '—';
+    if(diff!==null){
+      const cls = diff>=0?'diff-pos':(diff<-15?'diff-crit':'diff-neg');
+      diffHtml = `<span class="${cls}">${diff>=0?'+':''}${diff.toFixed(1)}%</span>`;
+    }
+    const mediaColor = f.media===0?'var(--text3)':(f.media>=f.meta?'#10b981':'#ef4444');
+    const barPct = f.meta>0&&f.media>0 ? Math.min((f.media/f.meta)*100,120) : 0;
+    const barColor = f.media>=f.meta?'#10b981':'#ef4444';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-cat">${f.categoria}</td>
+      <td class="td-frota">${f.frota}</td>
+      <td class="td-placa">${f.placa}</td>
+      <td>${f.distancia>0?f.distancia.toLocaleString('pt-BR'):'—'}</td>
+      <td>${f.volume>0?f.volume.toLocaleString('pt-BR',{minimumFractionDigits:0}):'—'}</td>
+      <td>${f.meta.toFixed(2)}</td>
+      <td class="td-media" style="color:${mediaColor}">${f.media>0?f.media.toFixed(2):'—'}</td>
+      <td>${diffHtml}</td>
+      <td><div class="mini-bar-wrap"><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div></div></td>
+      <td>${pillHtml(f.status)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── MODELOS TABLE ──
+function buildModeloTable() {
+  const tbody = document.getElementById('modelo-tbody');
+  DATA.modelos.forEach(m => {
+    const ok = m.media>0 && m.media>=m.meta;
+    const abaixo = m.media>0 && m.media<m.meta && (m.meta-m.media)/m.meta<0.15;
+    const crit = m.media>0 && (m.meta-m.media)/m.meta>=0.15;
+    let statusHtml;
+    if(!m.media) statusHtml = '<span class="pill pill-gray">— Sem dados</span>';
+    else if(ok)    statusHtml = '<span class="pill pill-ok">✓ OK</span>';
+    else if(crit)  statusHtml = '<span class="pill pill-crit">⚠ Crítico</span>';
+    else           statusHtml = '<span class="pill pill-warn">✗ Abaixo</span>';
+
+    const mColor = !m.media?'var(--text3)':(ok?'#10b981':'#ef4444');
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-cat-lbl">${m.categoria}</td>
+      <td class="td-mod">${m.modelo}</td>
+      <td>${m.qtd}</td>
+      <td>${m.abastecidos}</td>
+      <td>${m.volume>0?Math.round(m.volume).toLocaleString('pt-BR'):'—'}</td>
+      <td>${m.meta.toFixed(2)}</td>
+      <td style="color:${mColor};font-weight:600">${m.media?m.media.toFixed(2):'—'}</td>
+      <td style="color:#10b981">${m.melhor?m.melhor.toFixed(2):'—'}</td>
+      <td style="color:#ef4444">${m.pior?m.pior.toFixed(2):'—'}</td>
+      <td>${statusHtml}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── INIT ──
+buildVolBars();
+buildCatCards();
+buildRanking();
+buildCatFilter();
+frotas = [...DATA.frotas];
+renderTable();
+buildModeloTable();
+</script>
+</body>
+</html>
