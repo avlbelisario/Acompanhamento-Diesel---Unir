@@ -123,6 +123,7 @@ footer{text-align:center;padding:18px 40px;font-size:10px;color:var(--t3);border
   <button onclick="tab('historico',this)">Histórico</button>
   <button onclick="tab('frotas',this)">Frotas</button>
   <button onclick="tab('volume',this)">Volume & Compra</button>
+  <button onclick="tab('compras',this)">⛽ Compras por Garagem</button>
 </nav>
 <div class="msel"><span>Mês:</span><div id="mbtns" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
 <main>
@@ -167,6 +168,29 @@ footer{text-align:center;padding:18px 40px;font-size:10px;color:var(--t3);border
     <div style="background:var(--orL);border:1px solid var(--orM);border-radius:10px;padding:16px;font-size:12px;color:#92400E;line-height:1.6">
       ℹ️ Diferença negativa = sistema registrou mais do que a compra declarada. Pode indicar uso de estoque anterior ou divergência de datas entre nota fiscal e abastecimento.
     </div>
+  </div>
+
+  <div class="tp" id="tab-compras">
+    <div class="st">Resumo de Compras — Jan a Abr 2026</div>
+    <div class="kg" id="ck-totais"></div>
+    <div class="st">Preço Médio por Litro — Comparativo entre Garagens</div>
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:24px">
+      <table class="ht" id="ct-preco"></table>
+    </div>
+    <div class="st">Volume Comprado por Garagem (Litros)</div>
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:24px">
+      <table class="ht" id="ct-volume"></table>
+    </div>
+    <div class="st">Valor Total Gasto por Garagem (R$)</div>
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:24px">
+      <table class="ht" id="ct-valor"></table>
+    </div>
+    <div class="st">Litros Comprados por Fornecedor e Garagem</div>
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:24px">
+      <table class="ht" id="ct-forn-litros"></table>
+    </div>
+    <div class="st">Participação por Fornecedor</div>
+    <div class="cg" id="ct-forn"></div>
   </div>
 </main>
 <footer>EXPRESSO UNIR · GESTÃO DIESEL S10 · 2026 · Dados do sistema de abastecimento</footer>
@@ -349,6 +373,179 @@ function renderVolume(){
 buildMesBtns();
 setMes(3);
 renderHistorico();
+
+const COMPRAS = [{"garagem":"Pedro Leopoldo","meses":{"Janeiro":{"litros":70000,"valor":310875.2,"preco_medio":4.4411,"fornecedores":{"Ipiranga":{"litros":40000,"valor":177385.0,"pm":4.4346},"Raizen":{"litros":20000,"valor":89171.2,"pm":4.4586},"Alesat":{"litros":10000,"valor":44319.0,"pm":4.4319}},"detalhes":[{"data":"30/01/2026","mes":"Janeiro","fornecedor":"Ipiranga","qtde":10000,"vi":4.4102,"vt":44102.0},{"data":"27/01/2026","mes":"Janeiro","fornecedor":"Ipiranga","qtde":10000,"vi":4.4102,"vt":44102.0},{"data":"22/01/2026","mes":"Janeiro","fornecedor":"Ipiranga","qtde":10000,"vi":4.4103,"vt":44103.0},{"data":"17/01/2026","mes":"Janeiro","fornecedor":"Raizen","qtde":10000,"vi":4.42,"vt":44200.0},{"data":"14/01/2026","mes":"Janeiro","fornecedor":"Alesat","qtde":10000,"vi":4.4319,"vt":44319.0},{"data":"09/01/2026","mes":"Janeiro","fornecedor":"Raizen","qtde":10000,"vi":4.4971,"vt":44971.2},{"data":"07/01/2026","mes":"Janeiro","fornecedor":"Ipiranga","qtde":10000,"vi":4.5078,"vt":45078.0}]},"Fevereiro":{"litros":70000,"valor":307808.0,"preco_medio":4.3973,"fornecedores":{"Ipiranga":{"litros":50000,"valor":219589.0,"pm":4.3918},"Alesat":{"litros":10000,"valor":43979.0,"pm":4.3979},"Raizen":{"litros":10000,"valor":44240.0,"pm":4.424}},"detalhes":[{"data":"27/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":10000,"vi":4.3737,"vt":43737.0},{"data":"25/02/2026","mes":"Fevereiro","fornecedor":"Alesat","qtde":10000,"vi":4.3979,"vt":43979.0},{"data":"20/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3963,"vt":21981.5},{"data":"20/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3963,"vt":21981.5},{"data":"16/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3963,"vt":21981.5},{"data":"16/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3963,"vt":21981.5},{"data":"10/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3963,"vt":21981.5},{"data":"10/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3963,"vt":21981.5},{"data":"06/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":10000,"vi":4.3963,"vt":43963.0},{"data":"04/02/2026","mes":"Fevereiro","fornecedor":"Raizen","qtde":10000,"vi":4.424,"vt":44240.0}]},"Março":{"litros":90000,"valor":502382.4,"preco_medio":5.582,"fornecedores":{"Raizen":{"litros":10000,"valor":50120.0,"pm":5.012},"Ipiranga":{"litros":60000,"valor":336539.5,"pm":5.609},"Alesat":{"litros":10000,"valor":55709.0,"pm":5.5709},"Vibra":{"litros":10000,"valor":60013.9,"pm":6.0014}},"detalhes":[{"data":"31/03/2026","mes":"Março","fornecedor":"Raizen","qtde":5000,"vi":5.6,"vt":28000.0},{"data":"30/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.8155,"vt":29077.5},{"data":"27/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.8155,"vt":29077.5},{"data":"25/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.9654,"vt":29827.0},{"data":"24/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.9654,"vt":29827.0},{"data":"20/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.9655,"vt":29827.5},{"data":"19/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.9048,"vt":29524.0},{"data":"17/03/2026","mes":"Março","fornecedor":"Alesat","qtde":5000,"vi":5.5709,"vt":27854.5},{"data":"16/03/2026","mes":"Março","fornecedor":"Alesat","qtde":5000,"vi":5.5709,"vt":27854.5},{"data":"14/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.7809,"vt":28904.5},{"data":"13/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.6035,"vt":28017.5},{"data":"12/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.5898,"vt":27949.0},{"data":"12/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.5898,"vt":27949.0},{"data":"12/03/2026","mes":"Março","fornecedor":"Vibra","qtde":10000,"vi":6.0014,"vt":60013.9},{"data":"06/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":10000,"vi":4.6556,"vt":46559.0},{"data":"05/03/2026","mes":"Março","fornecedor":"Raizen","qtde":5000,"vi":4.424,"vt":22120.0}]},"Abril":{"litros":65000,"valor":349187.45,"preco_medio":5.3721,"fornecedores":{"Ipiranga":{"litros":45000,"valor":237494.0,"pm":5.2776},"Alesat":{"litros":15000,"valor":84693.5,"pm":5.6462},"Vibra":{"litros":5000,"valor":26999.95,"pm":5.4}},"detalhes":[{"data":"28/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1774,"vt":25887.0},{"data":"27/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.147,"vt":25737.0},{"data":"25/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1474,"vt":25737.0},{"data":"23/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1474,"vt":25737.0},{"data":"20/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1473,"vt":25736.5},{"data":"17/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.3002,"vt":26501.0},{"data":"16/04/2026","mes":"Abril","fornecedor":"Alesat","qtde":5000,"vi":5.3289,"vt":26644.5},{"data":"15/04/2026","mes":"Abril","fornecedor":"Vibra","qtde":5000,"vi":5.3999,"vt":26999.95},{"data":"11/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.4093,"vt":27046.5},{"data":"09/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.4093,"vt":27046.5},{"data":"07/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.6131,"vt":28065.5},{"data":"06/04/2026","mes":"Abril","fornecedor":"Alesat","qtde":10000,"vi":5.8049,"vt":58049.0}]}}},{"garagem":"Belo Horizonte","meses":{"Janeiro":{"litros":70000,"valor":309526.2,"preco_medio":4.4218,"fornecedores":{"Raizen":{"litros":40000,"valor":177221.2,"pm":4.4305},"Ipiranga":{"litros":10000,"valor":43807.0,"pm":4.3807},"Alesat":{"litros":20000,"valor":88498.0,"pm":4.4249}},"detalhes":[{"data":"31/01/2026","mes":"Janeiro","fornecedor":"Raizen","qtde":10000,"vi":4.4,"vt":44000.0},{"data":"28/01/2026","mes":"Janeiro","fornecedor":"Raizen","qtde":10000,"vi":4.4,"vt":44000.0},{"data":"23/01/2026","mes":"Janeiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3807,"vt":21903.5},{"data":"23/01/2026","mes":"Janeiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3807,"vt":21903.5},{"data":"19/01/2026","mes":"Janeiro","fornecedor":"Raizen","qtde":10000,"vi":4.4,"vt":44000.0},{"data":"14/01/2026","mes":"Janeiro","fornecedor":"Alesat","qtde":10000,"vi":4.4249,"vt":44249.0},{"data":"10/01/2026","mes":"Janeiro","fornecedor":"Alesat","qtde":10000,"vi":4.4249,"vt":44249.0},{"data":"06/01/2026","mes":"Janeiro","fornecedor":"Raizen","qtde":10000,"vi":4.5221,"vt":45221.2}]},"Fevereiro":{"litros":50000,"valor":219888.0,"preco_medio":4.3978,"fornecedores":{"Alesat":{"litros":10000,"valor":43909.0,"pm":4.3909},"Ipiranga":{"litros":30000,"valor":131889.0,"pm":4.3963},"Raizen":{"litros":10000,"valor":44090.0,"pm":4.409}},"detalhes":[{"data":"25/02/2026","mes":"Fevereiro","fornecedor":"Alesat","qtde":10000,"vi":4.3909,"vt":43909.0},{"data":"18/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3963,"vt":21981.5},{"data":"18/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3963,"vt":21981.5},{"data":"14/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3963,"vt":21981.5},{"data":"14/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3963,"vt":21981.5},{"data":"09/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3963,"vt":21981.5},{"data":"09/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":5000,"vi":4.3963,"vt":21981.5},{"data":"05/02/2026","mes":"Fevereiro","fornecedor":"Raizen","qtde":10000,"vi":4.409,"vt":44090.0}]},"Março":{"litros":85000,"valor":461652.4,"preco_medio":5.4312,"fornecedores":{"Alesat":{"litros":20000,"valor":113748.0,"pm":5.6874},"Ipiranga":{"litros":55000,"valor":288245.5,"pm":5.2408},"Vibra":{"litros":10000,"valor":59658.9,"pm":5.9659}},"detalhes":[{"data":"30/03/2026","mes":"Março","fornecedor":"Alesat","qtde":5000,"vi":5.8139,"vt":29069.5},{"data":"28/03/2026","mes":"Março","fornecedor":"Alesat","qtde":5000,"vi":5.8139,"vt":29069.5},{"data":"26/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.8155,"vt":29077.5},{"data":"24/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.9654,"vt":29827.0},{"data":"21/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.9655,"vt":29827.5},{"data":"19/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.9048,"vt":29524.0},{"data":"18/03/2026","mes":"Março","fornecedor":"Alesat","qtde":5000,"vi":5.5609,"vt":27804.5},{"data":"16/03/2026","mes":"Março","fornecedor":"Alesat","qtde":5000,"vi":5.5609,"vt":27804.5},{"data":"14/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.7809,"vt":28904.5},{"data":"13/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.5898,"vt":27949.0},{"data":"12/03/2026","mes":"Março","fornecedor":"Vibra","qtde":10000,"vi":5.9659,"vt":59658.9},{"data":"07/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":10000,"vi":4.7598,"vt":47598.0},{"data":"02/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":15000,"vi":4.3692,"vt":65538.0}]},"Abril":{"litros":60000,"valor":322730.45,"preco_medio":5.3788,"fornecedores":{"Ipiranga":{"litros":35000,"valor":182926.5,"pm":5.2265},"Alesat":{"litros":15000,"valor":84723.5,"pm":5.6482},"Vibra":{"litros":5000,"valor":26830.45,"pm":5.3661},"Raizen":{"litros":5000,"valor":28250.0,"pm":5.65}},"detalhes":[{"data":"28/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1774,"vt":25887.0},{"data":"25/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1474,"vt":25737.0},{"data":"22/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1473,"vt":25736.5},{"data":"20/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1474,"vt":25736.5},{"data":"18/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1474,"vt":25736.5},{"data":"16/04/2026","mes":"Abril","fornecedor":"Alesat","qtde":5000,"vi":5.3169,"vt":26584.5},{"data":"14/04/2026","mes":"Abril","fornecedor":"Vibra","qtde":5000,"vi":5.3661,"vt":26830.45},{"data":"11/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.4093,"vt":27046.5},{"data":"09/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.4093,"vt":27046.5},{"data":"06/04/2026","mes":"Abril","fornecedor":"Alesat","qtde":10000,"vi":5.8139,"vt":58139.0},{"data":"01/04/2026","mes":"Abril","fornecedor":"Raizen","qtde":5000,"vi":5.65,"vt":28250.0}]}}},{"garagem":"São José da Lapa","meses":{"Janeiro":{"litros":60000,"valor":266711.2,"preco_medio":4.4452,"fornecedores":{"Raizen":{"litros":30000,"valor":133421.2,"pm":4.4474},"Ipiranga":{"litros":10000,"valor":43982.0,"pm":4.3982},"Alesat":{"litros":20000,"valor":89308.0,"pm":4.4654}},"detalhes":[{"data":"31/01/2026","mes":"Janeiro","fornecedor":"Raizen","qtde":10000,"vi":4.41,"vt":44100.0},{"data":"26/01/2026","mes":"Janeiro","fornecedor":"Ipiranga","qtde":10000,"vi":4.3982,"vt":43982.0},{"data":"20/01/2026","mes":"Janeiro","fornecedor":"Raizen","qtde":10000,"vi":4.41,"vt":44100.0},{"data":"14/01/2026","mes":"Janeiro","fornecedor":"Alesat","qtde":10000,"vi":4.269,"vt":44269.0},{"data":"08/01/2026","mes":"Janeiro","fornecedor":"Alesat","qtde":10000,"vi":4.5039,"vt":45039.0},{"data":"02/01/2026","mes":"Janeiro","fornecedor":"Raizen","qtde":10000,"vi":4.5221,"vt":45221.2}]},"Fevereiro":{"litros":50000,"valor":220261.0,"preco_medio":4.4052,"fornecedores":{"Ipiranga":{"litros":10000,"valor":43912.0,"pm":4.3912},"Alesat":{"litros":10000,"valor":44079.0,"pm":4.4079},"Raizen":{"litros":30000,"valor":132270.0,"pm":4.409}},"detalhes":[{"data":"27/02/2026","mes":"Fevereiro","fornecedor":"Ipiranga","qtde":10000,"vi":4.3912,"vt":43912.0},{"data":"24/02/2026","mes":"Fevereiro","fornecedor":"Alesat","qtde":10000,"vi":4.4079,"vt":44079.0},{"data":"17/02/2026","mes":"Fevereiro","fornecedor":"Raizen","qtde":10000,"vi":4.409,"vt":44090.0},{"data":"11/02/2026","mes":"Fevereiro","fornecedor":"Raizen","qtde":10000,"vi":4.409,"vt":44090.0},{"data":"06/02/2026","mes":"Fevereiro","fornecedor":"Raizen","qtde":10000,"vi":4.409,"vt":44090.0}]},"Março":{"litros":55000,"valor":310228.9,"preco_medio":5.6405,"fornecedores":{"Raizen":{"litros":5000,"valor":28000.0,"pm":5.6},"Ipiranga":{"litros":35000,"valor":194412.5,"pm":5.5546},"Alesat":{"litros":5000,"valor":27824.5,"pm":5.5649},"Vibra":{"litros":10000,"valor":59991.9,"pm":5.9992}},"detalhes":[{"data":"31/03/2026","mes":"Março","fornecedor":"Raizen","qtde":5000,"vi":5.6,"vt":28000.0},{"data":"27/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.8334,"vt":29167.0},{"data":"25/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.9834,"vt":29917.0},{"data":"20/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.9834,"vt":29917.0},{"data":"19/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.9227,"vt":29613.5},{"data":"17/03/2026","mes":"Março","fornecedor":"Alesat","qtde":5000,"vi":5.5649,"vt":27824.5},{"data":"14/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":5000,"vi":5.8126,"vt":29063.0},{"data":"12/03/2026","mes":"Março","fornecedor":"Vibra","qtde":10000,"vi":5.9992,"vt":59991.9},{"data":"06/03/2026","mes":"Março","fornecedor":"Ipiranga","qtde":10000,"vi":4.6735,"vt":46735.0}]},"Abril":{"litros":50000,"valor":268948.95,"preco_medio":5.379,"fornecedores":{"Ipiranga":{"litros":35000,"valor":183891.0,"pm":5.254},"Vibra":{"litros":5000,"valor":26878.95,"pm":5.3758},"Alesat":{"litros":10000,"valor":58179.0,"pm":5.8179}},"detalhes":[{"data":"29/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1773,"vt":25886.5},{"data":"25/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1473,"vt":25736.5},{"data":"23/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1473,"vt":25736.5},{"data":"20/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.1474,"vt":25736.5},{"data":"17/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.3002,"vt":26501.0},{"data":"15/04/2026","mes":"Abril","fornecedor":"Vibra","qtde":5000,"vi":5.3758,"vt":26878.95},{"data":"11/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.4294,"vt":27147.0},{"data":"09/04/2026","mes":"Abril","fornecedor":"Ipiranga","qtde":5000,"vi":5.4294,"vt":27147.0},{"data":"06/04/2026","mes":"Abril","fornecedor":"Alesat","qtde":10000,"vi":5.8179,"vt":58179.0}]}}}];
+const MESES_C = ["Janeiro","Fevereiro","Março","Abril"];
+const GARAGENS = ["Pedro Leopoldo","Belo Horizonte","São José da Lapa"];
+const COR_G = ["var(--or)","var(--az)","#16A34A"];
+
+function renderCompras() {
+  // KPI totais
+  const totais = document.getElementById('ck-totais');
+  totais.innerHTML = '';
+  let tLitros=0, tValor=0;
+  COMPRAS.forEach(g => {
+    let l=0,v=0;
+    Object.values(g.meses).forEach(m=>{l+=m.litros;v+=m.valor;});
+    tLitros+=l; tValor+=v;
+  });
+  // 3 garagens + 1 total
+  COMPRAS.forEach((g,i) => {
+    let l=0,v=0;
+    Object.values(g.meses).forEach(m=>{l+=m.litros;v+=m.valor;});
+    const pm = v/l;
+    const el=document.createElement('div');el.className='kpi';
+    el.style.setProperty('--kc',COR_G[i]);
+    el.innerHTML='<div class="kl">'+g.garagem+'</div>'+
+      '<div class="kv">'+Math.round(l).toLocaleString('pt-BR')+'<span class="u">L</span></div>'+
+      '<div class="ks">R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' · Preço médio: R$ '+pm.toFixed(4)+'/L</div>';
+    totais.appendChild(el);
+  });
+  const tot=document.createElement('div');tot.className='kpi';
+  tot.style.setProperty('--kc','#7C3AED');
+  tot.innerHTML='<div class="kl">Total Empresa</div>'+
+    '<div class="kv">'+Math.round(tLitros).toLocaleString('pt-BR')+'<span class="u">L</span></div>'+
+    '<div class="ks">R$ '+tValor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' total Jan–Abr</div>';
+  totais.appendChild(tot);
+
+  // Tabela preço médio
+  const tp = document.getElementById('ct-preco');
+  let th='<thead><tr><th>Garagem</th>'+MESES_C.map(m=>'<th>'+m+'</th>').join('')+'<th>Média Geral</th></tr></thead><tbody>';
+  let rows='';
+  COMPRAS.forEach((g,gi) => {
+    let soma=0,litros=0;
+    const cells = MESES_C.map(m => {
+      const md = g.meses[m];
+      if(!md) return '<td>—</td>';
+      soma+=md.valor; litros+=md.litros;
+      // Color: compare between garagens for same month
+      return '<td style="font-weight:600">R$ '+md.preco_medio.toFixed(4)+'</td>';
+    }).join('');
+    const mg = litros>0?(soma/litros).toFixed(4):'—';
+    rows+='<tr><td style="color:'+COR_G[gi]+';font-weight:700">'+g.garagem+'</td>'+cells+'<td style="font-weight:700">R$ '+mg+'</td></tr>';
+  });
+  // Linha menor preco por mes
+  let menorRow='<tr style="background:#DCFCE7"><td style="color:#16A34A;font-weight:700">✓ Menor preço</td>';
+  MESES_C.forEach(m => {
+    let menor=null, gmenor='';
+    COMPRAS.forEach(g => {
+      const md=g.meses[m];
+      if(md && (menor===null||md.preco_medio<menor)){menor=md.preco_medio;gmenor=g.garagem;}
+    });
+    menorRow+='<td style="color:#16A34A;font-weight:700">'+(menor?gmenor:'—')+'</td>';
+  });
+  menorRow+='<td></td></tr>';
+  tp.innerHTML=th+rows+menorRow+'</tbody>';
+
+  // Tabela volume
+  const tv = document.getElementById('ct-volume');
+  let th2='<thead><tr><th>Garagem</th>'+MESES_C.map(m=>'<th>'+m+'</th>').join('')+'<th>Total</th></tr></thead><tbody>';
+  let rows2='';
+  COMPRAS.forEach((g,gi) => {
+    let total=0;
+    const cells=MESES_C.map(m=>{
+      const md=g.meses[m];
+      if(!md) return '<td>—</td>';
+      total+=md.litros;
+      return '<td>'+Math.round(md.litros).toLocaleString('pt-BR')+'</td>';
+    }).join('');
+    rows2+='<tr><td style="color:'+COR_G[gi]+';font-weight:700">'+g.garagem+'</td>'+cells+'<td style="font-weight:700">'+Math.round(total).toLocaleString('pt-BR')+'</td></tr>';
+  });
+  // Total por mes
+  let totRow='<tr style="font-weight:700;background:#FAFBFD"><td>Total</td>';
+  let gtotal=0;
+  MESES_C.forEach(m=>{
+    let s=0;COMPRAS.forEach(g=>{if(g.meses[m])s+=g.meses[m].litros;});
+    gtotal+=s;
+    totRow+='<td style="color:var(--or)">'+Math.round(s).toLocaleString('pt-BR')+'</td>';
+  });
+  totRow+='<td style="color:var(--or)">'+Math.round(gtotal).toLocaleString('pt-BR')+'</td></tr>';
+  tv.innerHTML=th2+rows2+totRow+'</tbody>';
+
+  // Tabela valor
+  const tval = document.getElementById('ct-valor');
+  let th3='<thead><tr><th>Garagem</th>'+MESES_C.map(m=>'<th>'+m+'</th>').join('')+'<th>Total</th></tr></thead><tbody>';
+  let rows3='';
+  COMPRAS.forEach((g,gi)=>{
+    let total=0;
+    const cells=MESES_C.map(m=>{
+      const md=g.meses[m];
+      if(!md)return '<td>—</td>';
+      total+=md.valor;
+      return '<td>R$ '+md.valor.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})+'</td>';
+    }).join('');
+    rows3+='<tr><td style="color:'+COR_G[gi]+';font-weight:700">'+g.garagem+'</td>'+cells+'<td style="font-weight:700">R$ '+Math.round(total).toLocaleString('pt-BR')+'</td></tr>';
+  });
+  let totRow3='<tr style="font-weight:700;background:#FAFBFD"><td>Total</td>';
+  let gval=0;
+  MESES_C.forEach(m=>{
+    let s=0;COMPRAS.forEach(g=>{if(g.meses[m])s+=g.meses[m].valor;});
+    gval+=s;
+    totRow3+='<td style="color:var(--or)">R$ '+Math.round(s).toLocaleString('pt-BR')+'</td>';
+  });
+  totRow3+='<td style="color:var(--or)">R$ '+Math.round(gval).toLocaleString('pt-BR')+'</td></tr>';
+  tval.innerHTML=th3+rows3+totRow3+'</tbody>';
+
+  // Fornecedores por garagem
+  const cf = document.getElementById('ct-forn');
+  cf.innerHTML='';
+  COMPRAS.forEach((g,gi) => {
+    let fTotal={};
+    Object.values(g.meses).forEach(m=>{
+      Object.entries(m.fornecedores).forEach(([f,v])=>{
+        if(!fTotal[f])fTotal[f]={litros:0,valor:0};
+        fTotal[f].litros+=v.litros;
+        fTotal[f].valor+=v.valor;
+      });
+    });
+    let tL=Object.values(fTotal).reduce((a,b)=>a+b.litros,0);
+    const card=document.createElement('div');card.className='cc';
+    const fornRows=Object.entries(fTotal).sort((a,b)=>b[1].litros-a[1].litros).map(([f,v])=>{
+      const pct=(v.litros/tL*100).toFixed(1);
+      const pm=(v.valor/v.litros).toFixed(4);
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bd)">'+
+        '<div><div style="font-size:12px;font-weight:600;color:var(--tx)">'+f+'</div>'+
+        '<div style="font-size:10px;color:var(--t3)">'+Math.round(v.litros).toLocaleString('pt-BR')+' L · R$ '+pm+'/L</div></div>'+
+        '<div style="text-align:right"><div style="font-size:13px;font-weight:700;color:'+COR_G[gi]+'">'+pct+'%</div>'+
+        '<div style="font-size:10px;color:var(--t3)">R$ '+Math.round(v.valor).toLocaleString('pt-BR')+'</div></div></div>';
+    }).join('');
+    card.innerHTML='<div class="ct"><span class="cn" style="color:'+COR_G[gi]+'">'+g.garagem+'</span></div>'+fornRows;
+    cf.appendChild(card);
+  });
+}
+
+  // Tabela litros por fornecedor x garagem
+  const fornecedores = ['Ipiranga','Alesat','Vibra','Raizen'];
+  const tfl = document.getElementById('ct-forn-litros');
+  let thf='<thead><tr><th>Fornecedor</th>'+COMPRAS.map((g,i)=>'<th style="color:'+COR_G[i]+'">'+g.garagem+'</th>').join('')+'<th>Total</th></tr></thead><tbody>';
+  let rowsf='';
+  let totForn={};
+  fornecedores.forEach(f=>{
+    let totalF=0;
+    const cells=COMPRAS.map(g=>{
+      let l=0;
+      Object.values(g.meses).forEach(m=>{if(m.fornecedores[f])l+=m.fornecedores[f].litros;});
+      totalF+=l;
+      if(!totForn[f])totForn[f]=0;
+      totForn[f]+=l;
+      return '<td>'+(l>0?Math.round(l).toLocaleString('pt-BR')+' L':'—')+'</td>';
+    }).join('');
+    if(totalF>0)rowsf+='<tr><td>'+f+'</td>'+cells+'<td style="font-weight:700">'+Math.round(totalF).toLocaleString('pt-BR')+' L</td></tr>';
+  });
+  // Total por garagem
+  let totRow='<tr style="font-weight:700;background:#FAFBFD"><td>Total</td>';
+  let gtot=0;
+  COMPRAS.forEach(g=>{
+    let l=0;Object.values(g.meses).forEach(m=>l+=m.litros);
+    gtot+=l;
+    totRow+='<td style="color:var(--or)">'+Math.round(l).toLocaleString('pt-BR')+' L</td>';
+  });
+  totRow+='<td style="color:var(--or)">'+Math.round(gtot).toLocaleString('pt-BR')+' L</td></tr>';
+  tfl.innerHTML=thf+rowsf+totRow+'</tbody>';
+
+// Init compras
+renderCompras();
+
 
 </script>
 </body>
